@@ -13,18 +13,18 @@
 #   Check Package:             'Ctrl + Shift + E'
 #   Test Package:              'Ctrl + Shift + T'
 
-VectR <- function(server,port=80,username=NULL, password=NULL){
-  #' Electric
+VectR <- function(server,port=443,username=NULL, password=NULL){
+  #' VectR
   #'
-  #' Created a connection to an Electric-Dataland server
+  #' Created a connection to an Vecter server
   #' @param server Server address
-  #' @param port Server port. Default is 80
+  #' @param port Server port. Default is 443 (https)
   #' @param username Username. Default is NULL
   #' @param passowrd Password Default is NULL
   #' @keywords connection
   #' @export
   #' @examples
-  #' Electric("https://electric-dataland.org",3000)
+  #' VectR("https://vecter.org")
 
   library(httr)
 
@@ -35,7 +35,13 @@ VectR <- function(server,port=80,username=NULL, password=NULL){
     username <- readline(prompt="Username:")
   }
   if(is.null(password)){
-    password <- readline(prompt="Password:")
+
+    if (rstudioapi::hasFun("askForPassword")) {
+      password <- rstudioapi::askForPassword()
+    } else {
+      password <- readline(prompt="Password:")
+    }
+
   }
 
   #create url for token
@@ -49,15 +55,15 @@ VectR <- function(server,port=80,username=NULL, password=NULL){
 
   if(status_code(token_response)==200){
     token <-content(token_response)[["token"]]
-    electric_dataland_connection <- list()
-    electric_dataland_connection[["server"]] <- server
-    electric_dataland_connection[["port"]] <- port
-    electric_dataland_connection[["token"]] <- token
-    electric_dataland_connection[["username"]] <- username
+    vecter_connection <- list()
+    vecter_connection[["server"]] <- server
+    vecter_connection[["port"]] <- port
+    vecter_connection[["token"]] <- token
+    vecter_connection[["username"]] <- username
 
-    electric_dataland_connection<<- electric_dataland_connection
+    vecter_connection<<- vecter_connection
     print("Connected")
   }else{
-    print("Error",as.character(status_code(token_response)))
+    print("Error",str(status_code(token_response)))
   }
 }

@@ -37,3 +37,4 @@ rsconnect/
 
 #Credentials for Testing
 _credentials.R
+.Rproj.user
