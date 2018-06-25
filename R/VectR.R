@@ -22,7 +22,7 @@ VectR <- function(server,port=443,username=NULL, password=NULL){
   #' @param username Username. Default is NULL
   #' @param passowrd Password Default is NULL
   #' @keywords connection
-  #' @export
+  #' @export vecter_connection
   #' @examples
   #' VectR("https://vecter.org")
 

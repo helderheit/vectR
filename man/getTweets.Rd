@@ -4,12 +4,42 @@
 \alias{getTweets}
 \title{getTweets}
 \usage{
-getTweets(collection_title, collection_id = NULL)
+getTweets(collection_title, collection_id = NULL, start_date = "",
+  limit = 1e+06, profile = "vectR")
 }
 \arguments{
 \item{collection_title}{Title of the collection}
 
+\item{start_date}{Tweets created before this date "YYYY-MM-DD" are ignored. Default is ""}
+
+\item{limit}{max. number of tweets fetched}
+
+\item{profile}{Default is vectR}
+
 \item{collection_is}{Id of the collection. Default is NULL}
+}
+\value{
+A dataframe with following coloums
+
+ \code{id} id of the tweet
+
+ \code{screen_name} of the twitteruser
+
+ \code{name} of the twitteruser
+
+ \code{text} tweettext
+
+ \code{created_at} date in raw twitter api format
+
+ \code{created_at} date in Date() format
+
+ \code{hashtags} hastags, separated by ,
+
+ \code{user_mentions} screen_names of mentioned users, separated by ,
+
+ \code{retweet_screen_name} screenname of the retweeted user, if the tweet is a retweet.
+
+ Additional coloumns for annotated values
 }
 \description{
 get all tweets for a collections
