@@ -47,14 +47,11 @@ VectR <- function(server,port=443,username=NULL, password=NULL){
   #create url for token
   url=paste(server,":",as.character(port),"/api/1.0/token",sep="")
 
-  #TODO remove next line if certiface is valid
-  httr::set_config(config(ssl_verifypeer = 0L))
-
   #get access token from server
   token_response <- httr::GET(url,authenticate(username, password))
 
-  if(status_code(token_response)==200){
-    token <-content(token_response)[["token"]]
+  if(httr::status_code(token_response)==200){
+    token <-httr::content(token_response)[["token"]]
     vecter_connection <- list()
     vecter_connection[["server"]] <- server
     vecter_connection[["port"]] <- port
@@ -64,6 +61,6 @@ VectR <- function(server,port=443,username=NULL, password=NULL){
     vecter_connection<<- vecter_connection
     print("Connected")
   }else{
-    print("Error",str(status_code(token_response)))
+    print("Error",str(httr::status_code(token_response)))
   }
 }

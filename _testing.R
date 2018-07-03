@@ -2,7 +2,6 @@ library(vectR)
 
 source("_credentials.R")
 VectR(SERVER,PORT,USERNAME,PASSWORD)
-#VectR("httP://localhost",3000,"admin","pass")
 
 start_time <- Sys.time()
 tweets <- getTweets("Listenkandidaten", start_date = "2018-01-01")

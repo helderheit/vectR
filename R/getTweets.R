@@ -100,8 +100,8 @@ getTweets <- function(collection_title, collection_id = NULL,start_date="",limit
 
   locale <- Sys.getlocale("LC_TIME")
   Sys.setlocale("LC_TIME", "C")
-  if(status_code(response) == 200){
-    tweets_raw <-content(response)[["rows"]]
+  if(httr::status_code(response) == 200){
+    tweets_raw <-httr::content(response)[["rows"]]
     print(paste("fetched",toString(length(tweets_raw)) ,"tweets in",toString(time)," seconds, creating dataframe...",sep=" "))
 
 

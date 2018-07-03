@@ -9,7 +9,7 @@ getCollections <- function(){
             as.character(vecter_connection[["port"]]),
             "/api/1.0/collections",sep="")
   response <- httr::GET(url,authenticate(vecter_connection[["token"]], ""))
-  if(status_code(response) == 200){
-    return(content(response))
+  if(httr::status_code(response) == 200){
+    return(httr::content(response))
   }
 }
