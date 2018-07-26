@@ -5,18 +5,20 @@
 \title{getTweets}
 \usage{
 getTweets(collection_title, collection_id = NULL, start_date = "",
-  limit = 1e+06, profile = "vectR")
+  end_date = "", chunksize = 10, profile = "vectR", debug = FALSE)
 }
 \arguments{
 \item{collection_title}{Title of the collection}
 
 \item{start_date}{Tweets created before this date "YYYY-MM-DD" are ignored. Default is ""}
 
-\item{limit}{max. number of tweets fetched}
+\item{end_date}{Tweets created after this date "YYYY-MM-DD" are ignored. Default is ""}
 
 \item{profile}{Default is vectR}
 
 \item{collection_is}{Id of the collection. Default is NULL}
+
+\item{limit}{max. number of tweets fetched}
 }
 \value{
 A dataframe with following coloums

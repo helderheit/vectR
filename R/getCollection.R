@@ -11,5 +11,7 @@ getCollections <- function(){
   response <- httr::GET(url,authenticate(vecter_connection[["token"]], ""))
   if(httr::status_code(response) == 200){
     return(httr::content(response))
+  }else{
+    print("Connection failed, maybe your session has expired!")
   }
 }

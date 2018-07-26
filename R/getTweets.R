@@ -1,5 +1,5 @@
 
-getTweets <- function(collection_title, collection_id = NULL,start_date="",end_date="",chunksize=10,profile="vectR"){
+getTweets <- function(collection_title, collection_id = NULL,start_date="",end_date="",chunksize=10,profile="vectR", debug=FALSE){
   #' getTweets
   #'
   #' get all tweets for a collections
@@ -34,12 +34,15 @@ getTweets <- function(collection_title, collection_id = NULL,start_date="",end_d
   #' getTweets("testcollection")
 
   #collection_id = NULL
-  #collection_title = "Listenkandidaten"
- # chunksize=2
-  #start_date = ""
-  #end_date = ""
-  #profile = "vectR"
+  #collection_title = "Bundestagsmitglieder"
+  #chunksize=10
+  #start_date = "2017-01-01"
+  #end_date = "2018-01-01"
 
+
+  profile = "vectR"
+
+  preparation_start = Sys.time()
   collecions = getCollections()
   collection = NULL
   if(is.null(collection_id)){
@@ -67,19 +70,30 @@ getTweets <- function(collection_title, collection_id = NULL,start_date="",end_d
  #
 
   dataframe <- NULL
+
+  query_time = 0
+  conversion_time = 0
+  execution_time = 0
+
+  preperation_time = Sys.time() - preparation_start
+  fetch_time = 0
+  vector_time = 0
+  dataframe_time = 0
+
   chunks = ceiling(collection[["number_of_accounts"]]/chunksize)
   for(chunk in 0:chunks){
+
     url=paste(vecter_connection[["server"]],":",
               as.character(vecter_connection[["port"]]),
               "/api/1.0/tweets/",collection_id,"?limit=",toString(chunksize),
               "&skip=",toString(chunksize*chunk),
               "&profile=",profile,
+              "&format=vectorized",
               "&start-date=",start_date,
               "&end-date=",end_date,sep="")
-    start_time <- Sys.time()
+    fetch_start <- Sys.time()
     response <- httr::GET(url,authenticate(vecter_connection[["token"]], ""))
-    end_time <- Sys.time()
-    time <- end_time - start_time
+    fetch_time <- fetch_time +(Sys.time()-fetch_start)
 
     #print(paste("fetched",toString(headers(response)[["content-length"]]),"in",toString(time)," Seconds",sep=" "))
 
@@ -105,61 +119,69 @@ getTweets <- function(collection_title, collection_id = NULL,start_date="",end_d
     tweets[["hashtags"]]= character()
     tweets[["user_mentions"]]= character()
 
+
+
     locale <- Sys.getlocale("LC_TIME")
     Sys.setlocale("LC_TIME", "C")
     if(httr::status_code(response) == 200){
+      query_time = query_time + httr::content(response)[["meta"]][["query_time"]]
+      conversion_time = conversion_time + httr::content(response)[["meta"]][["conversion_time"]]
+      execution_time = execution_time + httr::content(response)[["meta"]][["execution_time"]]
+
+      vector_start <- Sys.time()
       tweets_raw <-httr::content(response)[["rows"]]
       #print(paste("fetched",toString(length(tweets_raw)) ,"tweets in",toString(time)," seconds, creating dataframe...",sep=" "))
 
+      tweets[["id"]] <- unlist(tweets_raw[["id_str"]],use.names=FALSE)
+      tweets[["text"]] <- unlist(tweets_raw[["text"]],use.names=FALSE)
+      tweets[["created_at"]] <- unlist(tweets_raw[["created_at"]],use.names=FALSE)
+      tweets[["retweet_screen_name"]] <- unlist(tweets_raw[["retweeted_status"]][["user"]][["screen_name"]],use.names=FALSE)
 
-      for(i in seq_along(tweets_raw)){
-        item <- tweets_raw[[i]]
-        tweets[["id"]][i] <-item[["id_str"]]
-        for(field in names(collection[["schema"]])){
-          type <- collection[["schema"]][[field]]
-          if(type == "text" || type =="screen_name"){
-            tweets[[field]][i] <- item[["annotations"]][[field]]
-          }
-          if(type == "numeric"){
-            tweets[[field]][i]  <- as.numeric(as.character(item[["annotations"]][[field]]))
-          }
-          if(type == "boolean"){
-            tweets[[field]][i]  <-as.logical(toupper(as.character(item[["annotations"]][[field]])))
-          }
-        }
+      tweets[["date"]] <-as.Date(as.POSIXct(strptime(unlist(tweets_raw[["created_at"]],use.names=FALSE), "%a %b %d %H:%M:%S %z %Y", tz = "GMT"),tz = "GMT"))
 
-        tweets[["text"]][i] <- item[["text"]]
-        tweets[["created_at"]][i] <- item[["created_at"]]
-        tweets[["date"]][i] <- as.Date(as.POSIXct(strptime(item[["created_at"]], "%a %b %d %H:%M:%S %z %Y", tz = "GMT"),tz = "GMT"))
+      parseHashtags <- function(hashtags){
 
         hashtags_string <- ""
-        for(hashtag in item[["hashtags"]]){
-
+        for(hashtag in hashtags){
           if(hashtags_string == ""){
             hashtags_string <- hashtag[["text"]]
           }else{
             hashtags_string <- paste(hashtags_string,hashtag[["text"]],sep=",")
           }
         }
-        tweets[["hashtags"]][i]  <- hashtags_string
+        return(hashtags_string)
 
+      }
+      tweets[["hashtags"]] <- unlist(lapply(tweets_raw[["hashtags"]], parseHashtags),use.names = FALSE, recursive=FALSE)
+      parseUserMentions <- function(user_mentions){
         mentions_string <- ""
-        for(mention in item[["user_mentions"]]){
+        for(mention in user_mentions){
           if(mentions_string == ""){
             mentions_string <- mention[["screen_name"]]
           }else{
             mentions_string <- paste(mentions_string,mention[["screen_name"]],sep=",")
           }
         }
-        tweets[["user_mentions"]][i]  <- mentions_string
+        return(mentions_string)
+      }
+      tweets[["user_mentions"]] <- unlist(lapply(tweets_raw[["user_mentions"]], parseUserMentions),use.names = FALSE,recursive=FALSE)
 
 
-        if(is.null(item[["retweeted_status"]])){
-          tweets[["retweet_screen_name"]][i] <- ""
-        }else{
-          tweets[["retweet_screen_name"]][i] <- item[["retweeted_status"]][["user"]][["screen_name"]]
+      for(field in names(collection[["schema"]])){
+        type <- collection[["schema"]][[field]]
+        if(type == "text" || type =="screen_name"){
+          tweets[[field]] <- unlist(tweets_raw[["annotations"]][[field]],use.names=FALSE)
+        }
+        if(type == "numeric"){
+          tweets[[field]]  <- as.numeric(as.character(unlist(tweets_raw[["annotations"]][[field]],use.names=FALSE)))
+        }
+        if(type == "boolean"){
+          tweets[[field]]  <-as.logical(toupper(as.character(unlist(tweets_raw[["annotations"]][[field]],use.names=FALSE))))
         }
       }
+
+      vector_time <- vector_time + (Sys.time() - vector_start)
+      dataframe_start <- Sys.time()
       chunk_dataframe <- data.frame(id = tweets[["id"]])
       for(field in names(tweets)){
         chunk_dataframe[,field]  <- tweets[[field]]
@@ -169,17 +191,41 @@ getTweets <- function(collection_title, collection_id = NULL,start_date="",end_d
       }else{
         dataframe <- rbind(dataframe, chunk_dataframe)
       }
+      dataframe_time <- dataframe_time + (Sys.time() - dataframe_start)
+
 
     }
     progress = paste(paste(replicate(floor(40*(chunk/chunks)),"="),collapse="",sep=""),">",sep="")
     pending = paste(replicate(floor(40 -40*(chunk/chunks))," "),collapse="")
-    cat("\r getting Tweets ","[",progress,pending,"] chunk ",as.character(chunk)," of ",as.character(chunks),"          ",sep="")
+    cat("\r getting Tweets ","[",progress,pending,"] chunk ",as.character(chunk)," of ",as.character(chunks)," (",toString(nrow(dataframe))," tweets)","          ",sep="")
     flush.console()
   }
 
   Sys.setlocale("LC_TIME", locale)
+  print("")
 
+  if(debug){
+    print(paste("preparation:",toString(preperation_time)))
+    print(paste("fetch:",toString(fetch_time)))
+    print(paste("    transmission:",toString(fetch_time-execution_time)))
+    print(paste("vector-creation:",toString(vector_time)))
+    print(paste("dataframe-creation:",toString(dataframe_time)))
 
+    print("Server")
+    print(paste("    query:",toString(query_time)))
+    print(paste("    conversion:",toString(conversion_time)))
+    print(paste("    additional:",toString(execution_time-conversion_time-query_time)))
+    process <- c("dataframe-creation","vector-creation","transmission","additional","conversion","db-query","preparation")
+    time <- c(dataframe_time,vector_time,fetch_time-execution_time,execution_time-conversion_time-query_time, conversion_time,query_time,preperation_time)
+    runtime <- data.frame(process, time,stringsAsFactors = FALSE)
+    runtime$process <-as.character(process)
+    runtime$process <- factor(runtime$process, levels=unique(runtime$process))
+    runtime_plot <<- ggplot() + geom_bar(aes(y = time,x =1, fill = process), data = runtime,
+                        stat="identity") +coord_flip() +theme(axis.title.y=element_blank(),
+                                                              axis.text.y=element_blank(),
+                                                              axis.ticks.y=element_blank())
+
+  }
 
   return(dataframe)
 }

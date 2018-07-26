@@ -1,9 +1,9 @@
 Package: vectR
 Type: Package
 Title: Accessing Vecter API
-Version: 0.1.0
+Version: 0.2.2
 Author: Felix Albrecht
-Maintainer: Felix Albrecht <felix.albrecht@stud.uni-regensburg.de>
+Maintainer: Felix Albrecht <info@vecter.org>
 Description: Accessing the Vecter API.
 License: What license is it under?
 Encoding: UTF-8
