@@ -32,7 +32,7 @@ library(vectR)
 ### Zugang
 
 ```R
-VectR("https://vecter.org",username="your.username")
+VectR("https://app.vecter.org",username="your.username")
 ```
 
 ### 
