@@ -6,7 +6,6 @@ USERNAME <- "admin"
 PASSWORD <- "pass"
 PORT <- 3000
 
-
 source("_credentials.R")
 
 VectR(SERVER,PORT,USERNAME,PASSWORD)

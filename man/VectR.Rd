@@ -16,7 +16,7 @@ VectR(server, port = 443, username = NULL, password = NULL)
 \item{passowrd}{Password Default is NULL}
 }
 \description{
-Created a connection to an Vecter server
+Create a connection to an Vecter server
 }
 \examples{
 VectR("https://vecter.org")

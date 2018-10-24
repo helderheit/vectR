@@ -2,7 +2,7 @@
 getTweets <- function(collection_title, collection_id = NULL,start_date="",end_date="",chunksize=10,profile="vectR", debug=FALSE){
   #' getTweets
   #'
-  #' get all tweets for a collections
+  #' Get all tweets for a collection.
   #' @param collection_title Title of the collection
   #' @param collection_is Id of the collection. Default is NULL
   #' @param start_date Tweets created before this date "YYYY-MM-DD" are ignored. Default is ""
@@ -11,23 +11,23 @@ getTweets <- function(collection_title, collection_id = NULL,start_date="",end_d
   #' @param profile Default is vectR
   #' @return A dataframe with following coloums
   #'
-  #'  \code{id} id of the tweet
+  #'  `id` id of the tweet
   #'
-  #'  \code{screen_name} of the twitteruser
+  #'  `screen_name` of the twitteruser
   #'
-  #'  \code{name} of the twitteruser
+  #'  `name` of the twitteruser
   #'
-  #'  \code{text} tweettext
+  #'  `text` tweettext
   #'
-  #'  \code{created_at} date in raw twitter api format
+  #'  `created_at` date in raw twitter api format
   #'
-  #'  \code{created_at} date in Date() format
+  #'  `created_at` date in Date() format
   #'
-  #'  \code{hashtags} hastags, separated by ,
+  #'  `hashtags` hastags, separated by ,
   #'
-  #'  \code{user_mentions} screen_names of mentioned users, separated by ,
+  #'  `user_mentions` screen_names of mentioned users, separated by ,
   #'
-  #'  \code{retweet_screen_name} screenname of the retweeted user, if the tweet is a retweet.
+  #'  `retweet_screen_name` screenname of the retweeted user, if the tweet is a retweet.
   #'
   #'  Additional coloumns for annotated values
   #' @examples
